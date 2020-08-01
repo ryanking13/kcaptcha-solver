@@ -1,14 +1,22 @@
 import subprocess as sp
 import pathlib
 import urllib.request
-import secrets
 import concurrent.futures
 
 KCAPTCHA_DIR = "kcaptcha"
 PORT = 9999
-DATASET_SIZE = 100000
-DATASET_DIR = ".data"
 
+DATASET_DIR = ".data"
+TRAINSET_DIR = "train"
+TESTSET_DIR = "test"
+VALIDATIONSET_DIR = "validation"
+DATASET_SIZE = 50000
+TRAIN_RATIO = 0.6
+VALIDATION_RATIO = 0.2
+TEST_RATIO = 0.2
+TRAINSET_SIZE = int(DATASET_SIZE * TRAIN_RATIO)
+TESTSET_SIZE = int(DATASET_SIZE * TEST_RATIO)
+VALIDATIONSET_SIZE = int(DATASET_SIZE * VALIDATION_RATIO)
 
 def run_kcaptcha_server(docroot, port):
     return sp.Popen(
@@ -20,32 +28,44 @@ def run_kcaptcha_server(docroot, port):
 
 def generate_data(target, count, download_dir, port):
     for i in range(count):
-        save_path = download_dir / ("%s_%s.png" % (target, secrets.token_hex(16)))
+        save_path = download_dir / ("%s_%.5d.png" % (target, i))
         urllib.request.urlretrieve(
             "http://localhost:%d?string=%s" % (port, target), filename=save_path,
         )
 
-    return target
+    return str(download_dir / target)
 
 
 def main():
     proc = run_kcaptcha_server(KCAPTCHA_DIR, PORT)
 
     dataset_dir = pathlib.Path(DATASET_DIR)
+    trainset_dir = dataset_dir / TRAINSET_DIR
+    testset_dir = dataset_dir / TESTSET_DIR
+    validationset_dir = dataset_dir / VALIDATIONSET_DIR
     if not dataset_dir.is_dir():
         dataset_dir.mkdir()
+        trainset_dir.mkdir()
+        testset_dir.mkdir()
+        validationset_dir.mkdir()
 
     targets = ["%.2d" % num for num in range(0, 100)]
     pool = concurrent.futures.ThreadPoolExecutor()
     futures = []
     for target in targets:
         pool.submit(
-            generate_data, target, DATASET_SIZE // len(targets), dataset_dir, PORT
+            generate_data, target, TRAINSET_SIZE // len(targets), trainset_dir, PORT
+        )
+        pool.submit(
+            generate_data, target, TESTSET_SIZE // len(targets), testset_dir, PORT
+        )
+        pool.submit(
+            generate_data, target, VALIDATIONSET_SIZE // len(targets), validationset_dir, PORT
         )
 
     try:
         for completed in concurrent.futures.as_completed(futures):
-            print("[+] Done - %d" % completed.result())
+            print("[+] Done - %s" % completed.result())
     except KeyboardInterrupt:
         # https://gist.github.com/clchiou/f2608cbe54403edb0b13
         pool._threads.clear()
@@ -53,6 +73,7 @@ def main():
         raise
 
     pool.shutdown()
+    print("[+] Done")
 
 
 if __name__ == "__main__":
