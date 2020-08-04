@@ -21,13 +21,13 @@ $width = 160;
 $height = 60;
 
 # symbol's vertical fluctuation amplitude
-$fluctuation_amplitude = 8;
+$fluctuation_amplitude = 5;
 
 #noise
 //$white_noise_density=0; // no white noise
 $white_noise_density=1/6;
 //$black_noise_density=0; // no black noise
-$black_noise_density=1/30;
+$black_noise_density=1/20;
 
 # increase safety by prevention of spaces between symbols
 $no_spaces = true;
