@@ -36,6 +36,7 @@ class KCAPTCHA{
 		}	
 	
 		$alphabet_length=strlen($alphabet);
+		$length=strlen($keystring);
 		
 		do{
 			// generating random keystring
