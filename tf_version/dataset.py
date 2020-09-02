@@ -1,7 +1,10 @@
 # code adapted from: https://towardsdatascience.com/building-a-multi-output-convolutional-neural-network-with-keras-ed24c7bc1178
 
 import pathlib
+import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications import mobilenet_v2
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -9,50 +12,53 @@ from PIL import Image
 import settings
 
 
-class CAPTCHADataGenerator:
+class KCaptchaDataLoader:
     def __init__(self):
         self.train_df = load_trainset()
         self.test_df = load_testset()
         self.validation_df = load_validationset()
 
     def preprocess(self, img_path):
-        img = Image.open(img_path)
-        img = np.array(img) / 255.0
-
+        img = tf.keras.preprocessing.image.load_img(
+            img_path, target_size=(settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
+        )
+        img = tf.keras.preprocessing.image.img_to_array(img)
         return img
 
-    def generate_images(self, dataset, training=False, batch_size=16):
-        images, labels = [], []
-        while True:
-            for data in dataset.itertuples():
-                f = data["file"]
-                img = self.preprocess(f)
-                images.append(img)
-                labels.append(
-                    [
-                        to_categorical(data[i])
-                        for i in range(settings.CAPTCHA_MAX_LENGTH)
-                    ]
-                )
+    def load_dataset(self, dataset, batch_size=64, subset="training"):
+        x, y = [], []
 
-                # yielding condition
-                if len(images) >= batch_size:
-                    yield np.array(images), [
-                        np.array(labels),
-                    ]
-                    images, labels = [], []
+        for data in dataset.itertuples():
+            f = data.file
+            x.append(image.img_to_array(image.load_img(f)))
+            y.append(
+                [to_categorical(data[i]) for i in range(settings.CAPTCHA_LENGTH_MAX)]
+            )
 
-            if not training:
-                break
+        datagen = image.ImageDataGenerator(
+            rescale=1.0 / 255,
+            validation_split=0.2,
+            preprocessing_function=mobilenet_v2.preprocess_input,
+        )
 
-    def load_trainset(self):
-        return self.generate_images(self.train_df)
+        datagen.fit(x)
+        return (
+            datagen.flow(x=x, y=y, batch_size=batch_size, shuffle=True, subset=subset,),
+            len(x),
+        )
 
-    def load_testset(self):
-        return self.generate_images(self.test_df)
+    def load_trainset(self, batch_size=64):
+        return self.load_dataset(
+            self.train_df, batch_size=batch_size, subset="training"
+        )
 
-    def load_validationset(self):
-        return self.generate_images(self.validation_df)
+    def load_testset(self, batch_size=64):
+        return self.load_dataset(self.test_df, batch_size=batch_size,)
+
+    def load_validationset(self, batch_size=64):
+        return self.load_dataset(
+            self.train_df, batch_size=batch_size, subset="validation"
+        )
 
 
 def parse_dataset(dataset_path, ext="png"):

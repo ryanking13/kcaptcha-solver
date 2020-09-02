@@ -1,11 +1,10 @@
 import tensorflow as tf
-import tf.keras.applications.mobilenet_vs as mobilenet_v2
-import tf.keras.layers as layers
-import tf.keras.models as models
-import tf.keras.callbacks as callbacks
+from tensorflow.keras.applications import mobilenet_v2
+from tensorflow.keras import layers
+from tensorflow.keras import models
+from tensorflow.keras import callbacks
 import numpy as np
 import settings
-from dataset import CAPTCHADataGenerator
 
 
 class CAPTCHAMobileNet:
@@ -21,7 +20,7 @@ class CAPTCHAMobileNet:
 
         predictions = [
             layers.Dense(11, activation="softmax")(self.mobilenet.output)
-            for _ in range(settings.CAPTCHA_MAX_LENGTH)
+            for _ in range(settings.CAPTCHA_LENGTH_MAX)
         ]
 
         # for layer in self.mobilenet.layers:
@@ -36,16 +35,16 @@ class CAPTCHAMobileNet:
 
         # self.model.summary()
 
-    def train(self, dataset_generator, dataset_length, batch_size, epochs, validation_generator, validation_length):
+    def train(self, trainset, train_size, valset, val_size, batch_size, epochs):
         callbacks = [
             callbacks.ModelCheckpoint("./model_checkpoint", monitor='val_loss')
         ]
         self.model.fit_generator(
-            generator=dataset_generator,
-            steps_per_epoch=dataset_length / batch_size,
+            generator=trainset,
+            steps_per_epoch=train_size / batch_size,
             epochs=epochs,
-            validation_data=validation_generator,
-            validation_steps=validation_length / batch_size,
+            validation_data=valset,
+            validation_steps=val_size / batch_size,
             callbacks=callbacks,
         )
 
