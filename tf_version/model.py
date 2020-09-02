@@ -2,6 +2,7 @@ import tensorflow as tf
 import tf.keras.applications.mobilenet_vs as mobilenet_v2
 import tf.keras.layers as layers
 import tf.keras.models as models
+import tf.keras.callbacks as callbacks
 import numpy as np
 import settings
 from dataset import CAPTCHADataGenerator
@@ -36,12 +37,16 @@ class CAPTCHAMobileNet:
         # self.model.summary()
 
     def train(self, dataset_generator, dataset_length, batch_size, epochs, validation_generator, validation_length):
+        callbacks = [
+            callbacks.ModelCheckpoint("./model_checkpoint", monitor='val_loss')
+        ]
         self.model.fit_generator(
             generator=dataset_generator,
             steps_per_epoch=dataset_length / batch_size,
             epochs=epochs,
             validation_data=validation_generator,
             validation_steps=validation_length / batch_size,
+            callbacks=callbacks,
         )
 
     def predict(self, x):
