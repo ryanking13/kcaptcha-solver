@@ -1007,7 +1007,7 @@ toilet tissue
 """.strip().split("\n")
 
 m = tf.keras.Sequential([
-    hub.KerasLayer("https://tfhub.dev/google/imagenet/mobilenet_v1_025_224/classification/4")
+    hub.KerasLayer("https://tfhub.dev/google/imagenet/mobilenet_v1_025_224/classification/3")
 ])
 m.build([None, 224, 224, 3])  # Batch input shape.
 
@@ -1017,6 +1017,7 @@ img = tf.keras.preprocessing.image.load_img(
     img_path, target_size=(224, 224)
 )
 img_array = tf.keras.preprocessing.image.img_to_array(img)
+print(img_array)
 img_array /= 255.
 img_array = tf.expand_dims(img_array, 0) # Create a batch
 
