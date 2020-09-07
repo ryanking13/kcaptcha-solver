@@ -11,6 +11,7 @@ PORT = 9999
 DATASET_DIR = ".data"
 TRAINSET_DIR = "train"
 TESTSET_DIR = "test"
+VALIDATIONSET_DIR = "validation"
 DATASET_SIZE = 50000
 TRAIN_TEST_RATIO = 0.8
 NUM_DIGITS = 2
@@ -90,16 +91,29 @@ def main():
     dataset_dir = pathlib.Path(args.dataset_dir)
     trainset_dir = dataset_dir / TRAINSET_DIR
     testset_dir = dataset_dir / TESTSET_DIR
+    validationset_dir = dataset_dir / VALIDATIONSET_DIR
     dataset_dir.is_dir() or dataset_dir.mkdir()
     trainset_dir.is_dir() or trainset_dir.mkdir()
     testset_dir.is_dir() or testset_dir.mkdir()
+    validationset_dir.is_dir() or testset_dir.mkdir()
 
     trainset_size = int(args.dataset_size * args.train_test_ratio)
     testset_size = args.dataset_size - trainset_size
+    # split validation set from trainset
+    validationset_size = int(trainset_size * (1- args.train_test_ratio))
+    trainset_size -= validationset_size
+    
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(generate_data, trainset_size, trainset_dir, PORT, args.num_digits),
-            executor.submit(generate_data, testset_size, testset_dir, PORT, args.num_digits),
+            executor.submit(
+                generate_data, trainset_size, trainset_dir, PORT, args.num_digits
+            ),
+            executor.submit(
+                generate_data, testset_size, testset_dir, PORT, args.num_digits
+            ),
+            executor.submit(
+                generate_data, validationset_size, testset_dir, PORT, args.num_digits
+            ),
         ]
 
         try:
