@@ -116,7 +116,7 @@ def main():
                 generate_data, testset_size, testset_dir, PORT, args.num_digits
             ),
             executor.submit(
-                generate_data, validationset_size, testset_dir, PORT, args.num_digits
+                generate_data, validationset_size, validationset_dir, PORT, args.num_digits
             ),
         ]
 
