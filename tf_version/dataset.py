@@ -38,12 +38,12 @@ class KCaptchaDataLoader:
         self.x_test = None
         self.y_test = None
 
-        self.train_df = self.dataset_files_to_df(trainset_path)
-        self.test_df = self.dataset_files_to_df(testset_path)
-        self.trainset_generator, self.trainset_size = self.df_to_generator(
-            self.train_df
-        )
-        self.testset_generator, self.testset_size = self.df_to_generator(self.test_df)
+        # self.train_df = self.dataset_files_to_df(trainset_path)
+        # self.test_df = self.dataset_files_to_df(testset_path)
+        # self.trainset_generator, self.trainset_size = self.df_to_generator(
+        #     self.train_df
+        # )
+        # self.testset_generator, self.testset_size = self.df_to_generator(self.test_df)
 
     def one_hot_encode(self, label):
         vector = np.zeros(settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH, dtype=float)
@@ -59,6 +59,13 @@ class KCaptchaDataLoader:
             digit = c % settings.CHAR_SET_LEN
             text.append(str(digit))
         return "".join(text)
+
+    def preprocess(self, img_path):
+        img = image.load_img(
+            img_path, target_size=(settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
+        )
+        img = image.img_to_array(img)
+        return img
 
     def load_dataset(self):
         def _load_dataset_from_dir(path):
@@ -78,91 +85,98 @@ class KCaptchaDataLoader:
         self.x_train, self.y_train = _load_dataset_from_dir(self.trainset_path)
         self.x_val, self.y_val = _load_dataset_from_dir(self.validationset_path)
         self.x_test, self.y_test = _load_dataset_from_dir(self.testset_path)
+        self.dataset_loaded = True
 
-    def get_trainset(self, batch_size=64):
+    def _get_dataset(x, y, batch_size):
+        if not self.dataset_loaded:  # Lazy data loading
+            self.load_dataset()
+
         return (
             self.datagen.flow(
-                x=self.x_train,
-                y=self.y_train,
+                x=self.x,
+                y=self.y,
                 batch_size=batch_size,
                 shuffle=True,
             ),
-            len(self.y_train),
-        )
+            len(self.y),
+        )        
 
-    def dataset_files_to_df(self, path, ext=".png", separator="_"):
-        """generate Pandas DataFrame for dataset generator"""
+    def get_trainset(self, batch_size=64):
+        self._get_dataset(x_train, y_train, batch_size)
 
-        dataset_dir = pathlib.Path(path)
-        files = dataset_dir.glob(f"*.{ext}")
+    def get_validationset(self, batch_size=64):
+        self._get_dataset(x_val, y_val, batch_size)
 
-        labels = []
-        filepaths = []
-        for f in files:
-            filepaths.append(f.as_posix())
-            label = f.name.split(separator)[0]
-            labels.append(self.one_hot_encode(label))
+    def get_testset(self, batch_size=64):
+        self._get_dataset(x_test, y_test, batch_size)
 
-        df = pd.Dataframe(
-            {
-                "file": filepaths,
-                "label": labels,
-            }
-        )
-        df = df.dropna()
 
-        return df
+    # def dataset_files_to_df(self, path, ext=".png", separator="_"):
+    #     """generate Pandas DataFrame for dataset generator"""
 
-    def preprocess(self, img_path):
-        img = image.load_img(
-            img_path, target_size=(settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
-        )
-        img = image.img_to_array(img)
-        return img
+    #     dataset_dir = pathlib.Path(path)
+    #     files = dataset_dir.glob(f"*.{ext}")
 
-    def load_dataset(self, dataset, batch_size=64, subset="training"):
-        x, y = [], []
+    #     labels = []
+    #     filepaths = []
+    #     for f in files:
+    #         filepaths.append(f.as_posix())
+    #         label = f.name.split(separator)[0]
+    #         labels.append(self.one_hot_encode(label))
 
-        for data in dataset.itertuples():
-            f = data.file
-            x.append(image.img_to_array(image.load_img(f)))
-            y.append(
-                [to_categorical(data[i]) for i in range(settings.CAPTCHA_LENGTH_MAX)]
-            )
+    #     df = pd.Dataframe(
+    #         {
+    #             "file": filepaths,
+    #             "label": labels,
+    #         }
+    #     )
+    #     df = df.dropna()
 
-        datagen = image.ImageDataGenerator(
-            rescale=1.0 / 255,
-            validation_split=0.2,
-            preprocessing_function=mobilenet_v2.preprocess_input,
-        )
+    #     return df
 
-        datagen.fit(x)
-        return (
-            datagen.flow(
-                x=x,
-                y=y,
-                batch_size=batch_size,
-                shuffle=True,
-                subset=subset,
-            ),
-            len(x),
-        )
+    # def load_dataset(self, dataset, batch_size=64, subset="training"):
+    #     x, y = [], []
 
-    def load_trainset(self, batch_size=64):
-        return self.load_dataset(
-            self.train_df, batch_size=batch_size, subset="training"
-        )
+    #     for data in dataset.itertuples():
+    #         f = data.file
+    #         x.append(image.img_to_array(image.load_img(f)))
+    #         y.append(
+    #             [to_categorical(data[i]) for i in range(settings.CAPTCHA_LENGTH_MAX)]
+    #         )
 
-    def load_testset(self, batch_size=64):
-        return self.load_dataset(
-            self.test_df,
-            batch_size=batch_size,
-        )
+    #     datagen = image.ImageDataGenerator(
+    #         rescale=1.0 / 255,
+    #         validation_split=0.2,
+    #         preprocessing_function=mobilenet_v2.preprocess_input,
+    #     )
 
-    def load_validationset(self, batch_size=64):
-        return self.load_dataset(
-            self.train_df, batch_size=batch_size, subset="validation"
-        )
+    #     datagen.fit(x)
+    #     return (
+    #         datagen.flow(
+    #             x=x,
+    #             y=y,
+    #             batch_size=batch_size,
+    #             shuffle=True,
+    #             subset=subset,
+    #         ),
+    #         len(x),
+    #     )
+
+    # def load_trainset(self, batch_size=64):
+    #     return self.load_dataset(
+    #         self.train_df, batch_size=batch_size, subset="training"
+    #     )
+
+    # def load_testset(self, batch_size=64):
+    #     return self.load_dataset(
+    #         self.test_df,
+    #         batch_size=batch_size,
+    #     )
+
+    # def load_validationset(self, batch_size=64):
+    #     return self.load_dataset(
+    #         self.train_df, batch_size=batch_size, subset="validation"
+    #     )
 
 
 def plot_distribution(pd_series):
