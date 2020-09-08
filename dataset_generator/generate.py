@@ -68,8 +68,9 @@ def run_kcaptcha_server(docroot, port):
 #     return str(download_dir / target)
 
 
-def generate_data(count, download_dir, port, length):
+def generate_data(count, download_dir, port, length, verbose=True):
     nums = "0123456789"
+    dirname = download_dir.name
     for i in range(count):
         # length = random.choices(
         #     [2, 3, 4, 5, 6], weights=[1, 10, 100, 1000, 10000], k=1
@@ -81,7 +82,10 @@ def generate_data(count, download_dir, port, length):
             filename=save_path,
         )
 
-    return str(download_dir)
+        if verbose and i % 1000 == 0:
+            print(f"[{dirname}]: {i}")
+
+    return dirname
 
 
 def main():
@@ -95,7 +99,7 @@ def main():
     dataset_dir.is_dir() or dataset_dir.mkdir()
     trainset_dir.is_dir() or trainset_dir.mkdir()
     testset_dir.is_dir() or testset_dir.mkdir()
-    validationset_dir.is_dir() or testset_dir.mkdir()
+    validationset_dir.is_dir() or validationset_dir.mkdir()
 
     trainset_size = int(args.dataset_size * args.train_test_ratio)
     testset_size = args.dataset_size - trainset_size
