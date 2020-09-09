@@ -11,5 +11,5 @@ IMAGE_HEIGHT = 60
 
 TRAIN_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/train").resolve()
 TEST_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/test").resolve()
-VALIDATION_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/validation").resolve()
+# VALIDATION_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/validation").resolve()
 

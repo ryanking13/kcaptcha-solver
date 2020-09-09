@@ -18,15 +18,14 @@ class CAPTCHAMobileNet:
             pooling="max",
         )
 
-        predictions = [
-            layers.Dense(11, activation="softmax")(self.mobilenet.output)
-            for _ in range(settings.CAPTCHA_LENGTH_MAX)
-        ]
+        prediction = layers.Dense(settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH)(
+            self.mobilenet.output
+        )
 
         # for layer in self.mobilenet.layers:
         #     layer.trainable = False
 
-        self.model = models.Model(inputs=input_tensor, outputs=predictions)
+        self.model = models.Model(inputs=input_tensor, outputs=prediction)
         self.model.compile(
             optimizer="adam",
             loss="sparse_categorical_crossentropy",
@@ -35,36 +34,16 @@ class CAPTCHAMobileNet:
 
         # self.model.summary()
 
-    def train(self, trainset, train_size, valset, val_size, batch_size, epochs):
-        callbacks = [
-            callbacks.ModelCheckpoint("./model_checkpoint", monitor='val_loss')
+    def train(self, trainset, batch_size, epochs):
+        train_callbacks = [
+            callbacks.ModelCheckpoint("./model_checkpoint", monitor="val_loss"),
+            callbacks.ProgbarLogger()
         ]
-        self.model.fit_generator(
-            generator=trainset,
-            steps_per_epoch=train_size / batch_size,
+        self.model.fit(
+            x=trainset,
             epochs=epochs,
-            validation_data=valset,
-            validation_steps=val_size / batch_size,
-            callbacks=callbacks,
+            callbacks=train_callbacks,
         )
 
     def predict(self, x):
         return self.model.predict(x)
-
-
-def main():
-    model = CAPTCHAMobileNet()
-
-    img_path = "011078_00204.png"
-    img = tf.keras.preprocessing.image.load_img(
-        img_path, target_size=(settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
-    )
-    x = tf.keras.preprocessing.image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = tf.keras.applications.mobilenet_v2.preprocess_input(x)
-    preds = model.predict(x)
-    print(preds)
-
-
-if __name__ == "__main__":
-    main()
