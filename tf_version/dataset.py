@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import mobilenet_v2
+# from tensorflow.keras.applications import mobilenet
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -30,6 +31,7 @@ class KCaptchaDataLoader:
         self.datagen = image.ImageDataGenerator(
             rescale=1.0 / 255,
             preprocessing_function=mobilenet_v2.preprocess_input,
+            # preprocessing_function=mobilenet.preprocess_input,
         )
         self.dataset_loaded = False
 

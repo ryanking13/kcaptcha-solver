@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.applications import mobilenet_v2
+# from tensorflow.keras.applications import mobilenet
 from tensorflow.keras import layers
 from tensorflow.keras import models
 from tensorflow.keras import callbacks
@@ -10,6 +11,7 @@ import settings
 class CAPTCHAMobileNet:
     def __init__(self, input_tensor=layers.Input(shape=(224, 224, 3)), max_digits=6):
         self.mobilenet = mobilenet_v2.MobileNetV2(
+        # self.mobilenet = mobilenet.MobileNet(
             input_tensor=input_tensor,
             alpha=1.0,
             include_top=False,
