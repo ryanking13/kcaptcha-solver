@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import subprocess as sp
 import random
 import pathlib
+import shutil
 import urllib.request
 import concurrent.futures
 
@@ -45,6 +46,19 @@ def parse_args():
         default=NUM_DIGITS,
         help="Number of CAPTCHA digits (Default: %(default)s)",
         type=int,
+    )
+    parser.add_argument(
+        "-c",
+        "--clear",
+        default=False,
+        action="store_true",
+        help="Remove previous datasets before generation (Default: %(default)s",
+    )
+    parser.add_argument(
+        "--split-validation",
+        default=False,
+        action="store_true",
+        help="Split train/validation set with different directories (Default: %(default)s)",
     )
 
     return parser.parse_args()
@@ -95,18 +109,24 @@ def main():
     dataset_dir = pathlib.Path(args.dataset_dir)
     trainset_dir = dataset_dir / TRAINSET_DIR
     testset_dir = dataset_dir / TESTSET_DIR
-    validationset_dir = dataset_dir / VALIDATIONSET_DIR
+
+    if args.clear and dataset_dir.is_dir():
+        shutil.rmtree(str(dataset_dir))
+
     dataset_dir.is_dir() or dataset_dir.mkdir()
     trainset_dir.is_dir() or trainset_dir.mkdir()
     testset_dir.is_dir() or testset_dir.mkdir()
-    validationset_dir.is_dir() or validationset_dir.mkdir()
 
     trainset_size = int(args.dataset_size * args.train_test_ratio)
     testset_size = args.dataset_size - trainset_size
-    # split validation set from trainset
-    validationset_size = int(trainset_size * (1- args.train_test_ratio))
-    trainset_size -= validationset_size
-    
+
+    if args.split_validation:
+        validationset_dir = dataset_dir / VALIDATIONSET_DIR
+        validationset_dir.is_dir() or validationset_dir.mkdir()
+        # split validation set from trainset
+        validationset_size = int(trainset_size * (1 - args.train_test_ratio))
+        trainset_size -= validationset_size
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(
@@ -115,10 +135,18 @@ def main():
             executor.submit(
                 generate_data, testset_size, testset_dir, PORT, args.num_digits
             ),
-            executor.submit(
-                generate_data, validationset_size, validationset_dir, PORT, args.num_digits
-            ),
         ]
+
+        if args.split_validation:
+            futures.append(
+                executor.submit(
+                    generate_data,
+                    validationset_size,
+                    validationset_dir,
+                    PORT,
+                    args.num_digits,
+                ),
+            )
 
         try:
             for completed in concurrent.futures.as_completed(futures):
