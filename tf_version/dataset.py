@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import mobilenet_v2
+
 # from tensorflow.keras.applications import mobilenet
 import numpy as np
 import pandas as pd
@@ -59,7 +60,9 @@ class KCaptchaDataLoader:
 
     def preprocess(self, img_path):
         img = image.load_img(
-            img_path, target_size=(settings.IMAGE_WIDTH, settings.IMAGE_HEIGHT)
+            img_path,
+            target_size=(settings.IMAGE_HEIGHT, settings.IMAGE_WIDTH),
+            # color_mode="grayscale",
         )
         img = image.img_to_array(img)
         return img
@@ -88,12 +91,7 @@ class KCaptchaDataLoader:
 
     def _get_dataset(self, x, y, batch_size):
         return (
-            self.datagen.flow(
-                x=x,
-                y=y,
-                batch_size=batch_size,
-                shuffle=True,
-            ),
+            self.datagen.flow(x=x, y=y, batch_size=batch_size, shuffle=True,),
             len(y),
         )
 
@@ -107,7 +105,7 @@ class KCaptchaDataLoader:
     #         self.load_dataset()
     #     return self._get_dataset(self.x_val, self.y_val, batch_size)
 
-    def get_testset(self, batch_size=64):
+    def get_testset(self, batch_size=1):
         if not self.dataset_loaded:  # Lazy data loading
             self.load_dataset()
         return self._get_dataset(self.x_test, self.y_test, batch_size)

@@ -9,7 +9,7 @@ import settings
 
 
 class CAPTCHAMobileNet:
-    def __init__(self, input_tensor=layers.Input(shape=(224, 224, 3)), max_digits=6):
+    def __init__(self, input_tensor=layers.Input(shape=(224, 224, 3)), length=1000):
         self.mobilenet = mobilenet_v2.MobileNetV2(
         # self.mobilenet = mobilenet.MobileNet(
             input_tensor=input_tensor,
@@ -20,32 +20,35 @@ class CAPTCHAMobileNet:
             pooling="max",
         )
 
-        prediction = layers.Dense(settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH)(
+        prediction = layers.Dense(length)(
             self.mobilenet.output
         )
 
-        # for layer in self.mobilenet.layers:
-        #     layer.trainable = False
+        for layer in self.mobilenet.layers:
+            layer.trainable = False
 
         self.model = models.Model(inputs=input_tensor, outputs=prediction)
         self.model.compile(
             optimizer="adam",
-            loss="sparse_categorical_crossentropy",
+            loss="categorical_crossentropy",
             metrics=["accuracy"],
         )
 
         # self.model.summary()
 
     def train(self, trainset, batch_size, epochs):
-        train_callbacks = [
-            callbacks.ModelCheckpoint("./model_checkpoint", monitor="val_loss"),
-            callbacks.ProgbarLogger()
-        ]
+        # train_callbacks = [
+        #     callbacks.ModelCheckpoint("./model_checkpoint", monitor="val_loss"),
+        #     callbacks.ProgbarLogger()
+        # ]
         self.model.fit(
             x=trainset,
             epochs=epochs,
-            callbacks=train_callbacks,
+            # callbacks=train_callbacks,
         )
+
+    def evaluate(self, testset):
+        self.model.evaluate(testset)
 
     def predict(self, x):
         return self.model.predict(x)
