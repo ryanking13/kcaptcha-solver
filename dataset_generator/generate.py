@@ -5,6 +5,8 @@ import pathlib
 import shutil
 import urllib.request
 import concurrent.futures
+from PIL import Image
+import preprocess
 
 KCAPTCHA_DIR = "kcaptcha"
 PORT = 9999
@@ -82,7 +84,7 @@ def run_kcaptcha_server(docroot, port):
 #     return str(download_dir / target)
 
 
-def generate_data(count, download_dir, port, length, verbose=True):
+def generate_data(count, download_dir, port, length, verbose=True, preprocess_func=None):
     nums = "0123456789"
     dirname = download_dir.name
     for i in range(count):
@@ -91,15 +93,35 @@ def generate_data(count, download_dir, port, length, verbose=True):
         # )[0]
         target = "".join(random.choices(nums, k=length))
         save_path = download_dir / ("%s_%.6d.png" % (target, i))
-        urllib.request.urlretrieve(
-            "http://localhost:%d?string=%s" % (port, target),
-            filename=save_path,
-        )
+
+        if preproceess_func is None:
+            urllib.request.urlretrieve(
+                "http://localhost:%d?string=%s" % (port, target),
+                filename=save_path,
+            )
+        else:
+            content = urllib.request.urlopen("http://localhost:%d?string=%s" % (port, target))
+            img = preprocess_func(content)
+            img.save(save_path)
 
         if verbose and i % 1000 == 0:
             print(f"[{dirname}]: {i}")
 
     return dirname
+
+
+def preprocess_img(sz=(96, 96)):
+    width = 160
+    height = 60
+    def _preprocess(img):
+        img = Image.open(img)
+        img = preprocess.to_grascale(img)
+        img = preprocess.crop_img(img, sz=(min(width, sz[0]), min(height, sz[1])))
+        img = preprocess.resize_img(img, sz)
+        img = preprocess.filter_img(img)
+        return img
+    
+    return _preprocess
 
 
 def main():
@@ -127,13 +149,15 @@ def main():
         validationset_size = int(trainset_size * (1 - args.train_test_ratio))
         trainset_size -= validationset_size
 
+    preproceses_func = preprocess_img()
+    verbose = True
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(
-                generate_data, trainset_size, trainset_dir, PORT, args.num_digits
+                generate_data, trainset_size, trainset_dir, PORT, args.num_digits, verbose, preprocess_func,
             ),
             executor.submit(
-                generate_data, testset_size, testset_dir, PORT, args.num_digits
+                generate_data, testset_size, testset_dir, PORT, args.num_digits, verbose, preprocess_func,
             ),
         ]
 
@@ -145,6 +169,8 @@ def main():
                     validationset_dir,
                     PORT,
                     args.num_digits,
+                    verbose,
+                    preprocess_func,
                 ),
             )
 
