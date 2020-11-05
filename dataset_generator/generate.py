@@ -94,7 +94,7 @@ def generate_data(count, download_dir, port, length, verbose=True, preprocess_fu
         target = "".join(random.choices(nums, k=length))
         save_path = download_dir / ("%s_%.6d.png" % (target, i))
 
-        if preproceess_func is None:
+        if preprocess_func is None:
             urllib.request.urlretrieve(
                 "http://localhost:%d?string=%s" % (port, target),
                 filename=save_path,
@@ -115,7 +115,7 @@ def preprocess_img(sz=(96, 96)):
     height = 60
     def _preprocess(img):
         img = Image.open(img)
-        img = preprocess.to_grascale(img)
+        img = preprocess.to_grayscale(img)
         img = preprocess.crop_img(img, sz=(min(width, sz[0]), min(height, sz[1])))
         img = preprocess.resize_img(img, sz)
         img = preprocess.filter_img(img)
@@ -149,7 +149,7 @@ def main():
         validationset_size = int(trainset_size * (1 - args.train_test_ratio))
         trainset_size -= validationset_size
 
-    preproceses_func = preprocess_img()
+    preprocess_func = preprocess_img()
     verbose = True
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
