@@ -30,7 +30,7 @@ class CAPTCHAMobileNet:
         self.model = models.Model(inputs=input_tensor, outputs=prediction)
         self.model.compile(
             optimizer="adam",
-            loss="categorical_crossentropy",
+            loss="binary_crossentropy",
             metrics=["accuracy"],
         )
 

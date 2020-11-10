@@ -19,18 +19,17 @@ class KCaptchaDataLoader:
         self,
         trainset_path=settings.TRAIN_DATASET_PATH,
         testset_path=settings.TEST_DATASET_PATH,
-        # validationset_path=settings.VALIDATION_DATASET_PATH,
         verbose=True,
     ):
         self.trainset_path = trainset_path
         self.testset_path = testset_path
-        # self.validationset_path = validationset_path
         self.separator = "_"
         self.ext = "png"
         self.verbose = verbose
 
         self.datagen = image.ImageDataGenerator(
-            rescale=1.0 / 255,
+            # rescale=1.0 / 255,
+            # preprocess_input does scaling (https://github.com/tensorflow/tensorflow/blob/v2.3.1/tensorflow/python/keras/applications/imagenet_utils.py)
             preprocessing_function=mobilenet_v2.preprocess_input,
             # preprocessing_function=mobilenet.preprocess_input,
         )
@@ -44,6 +43,10 @@ class KCaptchaDataLoader:
         self.y_test = None
 
     def one_hot_encode(self, label):
+        """
+        e.g.) 17 ==> [0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0, 1.0, 0, 0,]
+        """
         vector = np.zeros(settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH, dtype=float)
         for i, c in enumerate(label):
             idx = i * settings.CHAR_SET_LEN + int(c)

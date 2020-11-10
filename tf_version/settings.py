@@ -6,8 +6,8 @@ CHAR_SET_LEN = len(CHAR_SET)
 
 CAPTCHA_LENGTH = 2
 
-IMAGE_WIDTH = 160
-IMAGE_HEIGHT = 60
+IMAGE_WIDTH = 96
+IMAGE_HEIGHT = 96
 
 TRAIN_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/train").resolve()
 TEST_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/test").resolve()

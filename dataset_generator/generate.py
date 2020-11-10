@@ -115,7 +115,7 @@ def preprocess_img(sz=(96, 96)):
     height = 60
     def _preprocess(img):
         img = Image.open(img)
-        img = preprocess.to_grayscale(img)
+        # img = preprocess.to_grayscale(img)
         img = preprocess.crop_img(img, sz=(min(width, sz[0]), min(height, sz[1])))
         img = preprocess.resize_img(img, sz)
         img = preprocess.filter_img(img)

@@ -42,6 +42,7 @@ def main():
     correct = 0
     for image, label in testset:
         prediction = net.predict(image)
+        print(prediction)
         label = label[0]
         prediction_num = decode_prediction(prediction[0])
         answer_num = data_loader.one_hot_decode(label)

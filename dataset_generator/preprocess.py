@@ -11,8 +11,8 @@ def crop_img(img, sz=(96, 60)):
     return img.crop((left, upper, right, bottom))
 
 
-def resize_img(img, sz=(96, 96), fill_color=255):
-    resized_img = Image.new("L", sz, fill_color)
+def resize_img(img, sz=(96, 96), fill_color=(255, 255, 255)):
+    resized_img = Image.new("RGB", sz, fill_color)
 
     w, h = img.size
     start_w = (sz[0] - w) // 2
