@@ -83,6 +83,7 @@ class KCaptchaDataLoader:
                 label = f.name.split(self.separator)[0]
                 y.append(self.one_hot_encode(label))
 
+            # return np.array(x), np.array(y)
             return np.array(x), np.array(y)
 
         self._log("Loading train set...")
