@@ -10,6 +10,7 @@ IMAGE_WIDTH = 96
 IMAGE_HEIGHT = 96
 
 TRAIN_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/train").resolve()
-TEST_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/test").resolve()
-# VALIDATION_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/validation").resolve()
+# TEST_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/test").resolve()
+TEST_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data.real").resolve()
+VALIDATION_DATASET_PATH = (pathlib.Path() / "../dataset_generator/.data/validation").resolve()
 

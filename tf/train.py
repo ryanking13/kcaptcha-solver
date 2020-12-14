@@ -43,37 +43,40 @@ def main():
         length=settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH,
     )
 
-    batch_size = 128
+    batch_size = 64
+    epochs = 10
     trainset, train_size = data_loader.get_trainset(batch_size=batch_size)
+    valset = data_loader.get_validationset()
     testset, test_size = data_loader.get_testset()
     net.train(
-        trainset, batch_size=batch_size, epochs=30,
+        trainset, valset, batch_size=batch_size, epochs=epochs,
     )
 
-    net.evaluate(testset)
+    # net.evaluate(testset)
 
-    # correct = 0
-    # cnt = 0
+    correct = 0
+    cnt = 0
 
-    # images, labels = [], []
-    # for idx, (image, label) in enumerate(testset):
-    #     if idx == test_size:
-    #         break
+    images, labels = [], []
+    for idx, (image, label) in enumerate(testset):
+        if idx == test_size:
+            break
 
-    #     images.append(image)
-    #     labels.append(label)
+        images.append(image)
+        labels.append(label)
 
 
     
-    # predictions = net.predict(np.array(images))
-    # for prediction, label in tqdm(zip(predictions, labels)):
-    #     p = decode_prediction(prediction[0])
-    #     l = label[0]
-    #     if p == l:
-    #         correct += 1
+    predictions = net.predict(np.squeeze(np.array(images)))
+    for prediction, label in tqdm(zip(predictions, labels)):
+        p = decode_prediction(prediction)
+        l = data_loader.one_hot_decode(label[0])
+        # print(p, l)
+        if p == l:
+            correct += 1
 
-    # test_acc = 100.0 * correct / test_size
-    # print(f"[*] Accuracy: {correct}/{test_size} ({test_acc} %)")
+    test_acc = 100.0 * correct / test_size
+    print(f"[*] Accuracy: {correct}/{test_size} ({test_acc} %)")
 
 
 if __name__ == "__main__":

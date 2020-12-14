@@ -22,7 +22,6 @@ class CAPTCHAMobileNet:
         length=1000,
     ):
         # self.net = mobilenet_v2.MobileNetV2(
-        #     # self.mobilenet = mobilenet.MobileNet(
         #     input_shape=input_shape,
         #     input_tensor=input_tensor,
         #     alpha=1.0,
@@ -33,7 +32,6 @@ class CAPTCHAMobileNet:
         # )
 
         self.net = DenseNet121(
-            # self.mobilenet = mobilenet.MobileNet(
             input_shape=input_shape,
             input_tensor=input_tensor,
             include_top=False,
@@ -51,18 +49,16 @@ class CAPTCHAMobileNet:
 
         self.model = models.Model(inputs=input_tensor, outputs=prediction)
         opt = tf.keras.optimizers.Adam(learning_rate=1e-4)
-        def top_k_accuracy(y_true, y_pred):
-            return metrics.top_k_categorical_accuracy(y_true, y_pred, k=settings.CAPTCHA_LENGTH)
 
         self.model.compile(
             optimizer=opt,
             loss="binary_crossentropy",
-            metrics=["accuracy", top_k_accuracy],
+            metrics=["accuracy"],
         )
 
         # self.model.summary()
 
-    def train(self, trainset, batch_size, epochs):
+    def train(self, trainset, valset, batch_size, epochs):
         # train_callbacks = [
         #     callbacks.ModelCheckpoint("./model_checkpoint", monitor="val_loss"),
         #     callbacks.ProgbarLogger()
@@ -76,7 +72,7 @@ class CAPTCHAMobileNet:
             x=trainset,
             epochs=epochs,
             # callbacks=train_callbacks,
-            # validation_split=0.2,
+            validation_data=valset,
             callbacks=[tensorboard_callback],
         )
 

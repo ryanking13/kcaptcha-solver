@@ -9,7 +9,6 @@ from tensorflow.keras.applications import mobilenet_v2
 # from tensorflow.keras.applications import mobilenet
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 from PIL import Image
 import settings
 
@@ -19,10 +18,12 @@ class KCaptchaDataLoader:
         self,
         trainset_path=settings.TRAIN_DATASET_PATH,
         testset_path=settings.TEST_DATASET_PATH,
+        validationset_path=settings.VALIDATION_DATASET_PATH,
         verbose=True,
     ):
         self.trainset_path = trainset_path
         self.testset_path = testset_path
+        self.validationset_path = validationset_path
         self.separator = "_"
         self.ext = "png"
         self.verbose = verbose
@@ -37,8 +38,8 @@ class KCaptchaDataLoader:
 
         self.x_train = None
         self.y_train = None
-        # self.x_val = None
-        # self.y_val = None
+        self.x_val = None
+        self.y_val = None
         self.x_test = None
         self.y_test = None
 
@@ -88,6 +89,8 @@ class KCaptchaDataLoader:
 
         self._log("Loading train set...")
         self.x_train, self.y_train = _load_dataset_from_dir(self.trainset_path)
+        self._log("Loading validation set...")
+        self.x_val, self.y_val = _load_dataset_from_dir(self.validationset_path)
         self._log("Loading test set...")
         self.x_test, self.y_test = _load_dataset_from_dir(self.testset_path)
         self._log("Done loading datasets")
@@ -109,6 +112,11 @@ class KCaptchaDataLoader:
     #         self.load_dataset()
     #     return self._get_dataset(self.x_val, self.y_val, batch_size)
 
+    def get_validationset(self):
+        if not self.dataset_loaded:  # Lazy data loading
+            self.load_dataset()
+        return (self.x_val / 255.0, self.y_val)
+
     def get_testset(self, batch_size=1):
         if not self.dataset_loaded:  # Lazy data loading
             self.load_dataset()
@@ -118,13 +126,3 @@ class KCaptchaDataLoader:
         if self.verbose:
             print(f"[*] {self.__class__.__name__}: {msg}")
 
-
-def plot_distribution(pd_series):
-    labels = pd_series.value_counts().index.tolist()
-    counts = pd_series.value_counts().values.tolist()
-
-    pie_plot = go.Pie(labels=labels, values=counts, hole=0.3)
-    fig = go.Figure(data=[pie_plot])
-    fig.update_layout(title_text="Distribution for %s" % pd_series.name)
-
-    fig.show()
