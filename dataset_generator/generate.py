@@ -92,6 +92,7 @@ def generate_data(count, download_dir, port, length, verbose=True, preprocess_fu
         #     [2, 3, 4, 5, 6], weights=[1, 10, 100, 1000, 10000], k=1
         # )[0]
         target = "".join(random.choices(nums, k=length))
+        # target = "10"  # for test
         save_path = download_dir / ("%s_%.6d.png" % (target, i))
 
         if preprocess_func is None:
