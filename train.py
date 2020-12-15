@@ -40,7 +40,8 @@ def main():
     net = model.CAPTCHAMobileNet(
         input_shape=(settings.IMAGE_HEIGHT, settings.IMAGE_WIDTH, 3),
         input_tensor=input_tensor,
-        length=settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH,
+        captcha_length=settings.CAPTCHA_LENGTH,
+        char_classes=settings.CHAR_SET_LEN,
     )
 
     batch_size = 64

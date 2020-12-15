@@ -1,12 +1,9 @@
-# code adapted from: https://towardsdatascience.com/building-a-multi-output-convolutional-neural-network-with-keras-ed24c7bc1178
-
 import pathlib
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import mobilenet_v2
 
-# from tensorflow.keras.applications import mobilenet
 import numpy as np
 import pandas as pd
 from PIL import Image
