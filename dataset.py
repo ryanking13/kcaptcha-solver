@@ -7,20 +7,28 @@ from tensorflow.keras.applications import mobilenet_v2
 import numpy as np
 import pandas as pd
 from PIL import Image
-import settings
 
 
 class KCaptchaDataLoader:
     def __init__(
         self,
-        trainset_path=settings.TRAIN_DATASET_PATH,
-        testset_path=settings.TEST_DATASET_PATH,
-        validationset_path=settings.VALIDATION_DATASET_PATH,
+        trainset_path,
+        testset_path,
+        validationset_path,
+        captcha_length,
+        available_chars,
+        width,
+        height,
         verbose=True,
     ):
         self.trainset_path = trainset_path
         self.testset_path = testset_path
         self.validationset_path = validationset_path
+        self.captcha_length = captcha_length
+        self.available_chars = available_chars
+        self.available_chars_cnt = len(self.available_chars)
+        self.image_width = width
+        self.image_height = height
         self.separator = "_"
         self.ext = "png"
         self.verbose = verbose
@@ -45,9 +53,9 @@ class KCaptchaDataLoader:
         e.g.) 17 ==> [0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0, 1.0, 0, 0,]
         """
-        vector = np.zeros(settings.CHAR_SET_LEN * settings.CAPTCHA_LENGTH, dtype=float)
+        vector = np.zeros(self.available_chars_cnt * self.captcha_length, dtype=float)
         for i, c in enumerate(label):
-            idx = i * settings.CHAR_SET_LEN + int(c)
+            idx = i * self.available_chars_cnt + int(c)
             vector[idx] = 1.0
         return vector
 
@@ -55,14 +63,14 @@ class KCaptchaDataLoader:
         char_pos = vec.nonzero()[0]
         text = []
         for i, c in enumerate(char_pos):
-            digit = c % settings.CHAR_SET_LEN
+            digit = c % self.available_chars_cnt
             text.append(str(digit))
         return "".join(text)
 
     def preprocess(self, img_path):
         img = image.load_img(
             img_path,
-            target_size=(settings.IMAGE_HEIGHT, settings.IMAGE_WIDTH),
+            target_size=(self.image_height, self.image_width),
             # color_mode="grayscale",
         )
         img = image.img_to_array(img)

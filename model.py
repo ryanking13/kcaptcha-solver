@@ -12,10 +12,8 @@ from tensorflow.keras import callbacks
 from tensorflow.keras import metrics
 import numpy as np
 
-import settings
 
-
-class CAPTCHAMobileNet:
+class CAPTCHANet:
     def __init__(
         self,
         input_shape=None,
