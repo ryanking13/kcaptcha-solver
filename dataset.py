@@ -117,15 +117,10 @@ class KCaptchaDataLoader:
             self.load_dataset()
         return self._get_dataset(self.x_train, self.y_train, batch_size)
 
-    # def get_validationset(self, batch_size=64):
-    #     if not self.dataset_loaded:  # Lazy data loading
-    #         self.load_dataset()
-    #     return self._get_dataset(self.x_val, self.y_val, batch_size)
-
     def get_validationset(self):
         if not self.dataset_loaded:  # Lazy data loading
             self.load_dataset()
-        return (self.x_val / 255.0, self.y_val)
+        return (self.x_val / 255.0, self.y_val), len(self.x_val)
 
     def get_testset(self, batch_size=1):
         if not self.dataset_loaded:  # Lazy data loading

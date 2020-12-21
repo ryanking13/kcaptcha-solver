@@ -85,8 +85,8 @@ class CAPTCHANet:
             callbacks=[tensorboard_callback],
         )
 
-    def evaluate(self, testset):
-        self.model.evaluate(testset)
+    def evaluate(self, x, batch_size):
+        self.model.evaluate(x, batch_size=batch_size)
 
     def predict(self, x):
         return self.model.predict(x)

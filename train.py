@@ -43,27 +43,37 @@ def parse_args():
         help="Available characters for CAPTCHA (default: %(default)s)",
     )
     parser.add_argument(
-        "--dataset-root",
-        default="datasets/.data",
-        help="Dataset root directory (default: %(default)s)",
-    )
-    parser.add_argument(
         "--train",
-        default="train",
-        help="Train dataset directory name (default: %(default)s)",
+        default="datasets/.data/train",
+        help="Train dataset directory (default: %(default)s)",
     )
     parser.add_argument(
         "--validation",
-        default="validation",
-        help="Validation dataset directory name (default: %(default)s)",
+        default="datasets/.data/validation",
+        help="Validation dataset directory (default: %(default)s)",
     )
     parser.add_argument(
         "--test",
-        default="test",
-        help="Test dataset directory name (default: %(default)s)",
+        default="datasets/.data/test",
+        help="Test dataset directory (default: %(default)s)",
     )
     parser.add_argument(
-        "--epochs", type=int, default=5, help="Traning epochs (default: %(default)s)"
+        "--epochs",
+        type=int,
+        default=5,
+        help="Traning epochs (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Batch size (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=False,
     )
 
     args = parser.parse_args()
@@ -85,32 +95,62 @@ def vec2img(vec):
 
 def main():
     args = parse_args()
+
     base_dir = (
         pathlib.Path(__file__).resolve().parent
     )  # directory where this file is in
-    data_loader = dataset.KCaptchaDataLoader(
-        trainset_path=(base_dir / args.dataset_root / args.train).resolve(),
-        validationset_path=(base_dir / args.dataset_root / args.validation).resolve(),
-        testset_path=(base_dir / args.dataset_root / args.train).resolve(),
-        captcha_length=args.length,
-        available_chars=args.char_set,
-        width=args.width,
-        height=args.width,
-    )
 
-    input_tensor = layers.Input(shape=(args.width, args.width, 3))
-    net = model.CAPTCHANet(
-        input_shape=(args.width, args.width, 3),
-        input_tensor=input_tensor,
-        captcha_length=args.length,
-        char_classes=len(args.char_set),
-    )
-
-    batch_size = 64
+    trainset_path = (base_dir  / args.train).resolve()
+    validationset_path = (base_dir  / args.validation).resolve()
+    testset_path = (base_dir / args.test).resolve()
+    batch_size = args.batch_size
     epochs = args.epochs
+    captcha_length = args.length
+    available_chars = args.char_set
+    width = args.width
+    height = args.width
+    verbose = args.verbose
+
+    if verbose:
+        # os.environ["TF_CPP_MIN_LOG_LEVEL"] = "0"
+        print("-----------------------------------------")
+        print(f"Train Set: {trainset_path}")
+        print(f"Validation Set: {validationset_path}")
+        print(f"Test Set: {testset_path}")
+        print(f"Batch Size: {batch_size}")
+        print(f"Epochs: {epochs}")
+        print(f"Length of CAPTCHA: {captcha_length}")
+        print(f"Available Characters: {available_chars}")
+        print(f"Image size: {width}x{height}")
+        print("-----------------------------------------")
+
+    data_loader = dataset.KCaptchaDataLoader(
+        trainset_path=trainset_path,
+        validationset_path=validationset_path,
+        testset_path=testset_path,
+        captcha_length=captcha_length,
+        available_chars=available_chars,
+        width=width,
+        height=height,
+    )
+
+    input_tensor = layers.Input(shape=(width, height, 3))
+    net = model.CAPTCHANet(
+        input_shape=(width, height, 3),
+        input_tensor=input_tensor,
+        captcha_length=captcha_length,
+        char_classes=len(available_chars),
+    )
+
     trainset, train_size = data_loader.get_trainset(batch_size=batch_size)
-    valset = data_loader.get_validationset()
+    valset, val_size = data_loader.get_validationset()
     testset, test_size = data_loader.get_testset()
+
+    if verbose:
+        print(f"Train Set Size: {train_size}")
+        print(f"Validation Set Size: {val_size}")
+        print(f"Test Set Size: {test_size}")
+
     net.train(
         trainset,
         valset,
@@ -118,29 +158,32 @@ def main():
         epochs=epochs,
     )
 
-    # net.evaluate(testset)
+    if not verbose:
+        net.evaluate(testset)
+    else:
+        correct = 0
+        cnt = 0
 
-    correct = 0
-    cnt = 0
+        images, labels = [], []
+        for idx, (image, label) in enumerate(testset):
+            if idx == test_size:
+                break
 
-    images, labels = [], []
-    for idx, (image, label) in enumerate(testset):
-        if idx == test_size:
-            break
+            images.append(image)
+            labels.append(label)
 
-        images.append(image)
-        labels.append(label)
+        predictions = net.predict(np.squeeze(np.array(images)))
+        for prediction, label in tqdm(zip(predictions, labels)):
+            p = decode_prediction(prediction, args.char_set)
+            l = data_loader.one_hot_decode(label[0])
+            # print(p, l)
+            if p == l:
+                correct += 1
+            else:
+                print(f"[Wrong] {l} <==> {p} (true/predicted)")
 
-    predictions = net.predict(np.squeeze(np.array(images)))
-    for prediction, label in tqdm(zip(predictions, labels)):
-        p = decode_prediction(prediction, args.char_set)
-        l = data_loader.one_hot_decode(label[0])
-        # print(p, l)
-        if p == l:
-            correct += 1
-
-    test_acc = 100.0 * correct / test_size
-    print(f"[*] Accuracy: {correct}/{test_size} ({test_acc} %)")
+        test_acc = 100.0 * correct / test_size
+        print(f"[*] Accuracy: {correct}/{test_size} ({test_acc} %)")
 
 
 if __name__ == "__main__":
