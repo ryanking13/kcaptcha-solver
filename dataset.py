@@ -103,7 +103,12 @@ class KCaptchaDataLoader:
 
     def _get_dataset(self, x, y, batch_size):
         return (
-            self.datagen.flow(x=x, y=y, batch_size=batch_size, shuffle=True,),
+            self.datagen.flow(
+                x=x,
+                y=y,
+                batch_size=batch_size,
+                shuffle=True,
+            ),
             len(y),
         )
 
@@ -130,4 +135,3 @@ class KCaptchaDataLoader:
     def _log(self, msg):
         if self.verbose:
             print(f"[*] {self.__class__.__name__}: {msg}")
-
