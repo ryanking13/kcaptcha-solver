@@ -75,6 +75,12 @@ def parse_args():
         action="store_true",
         default=False,
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Save best model to specified path, if not specified, model is not saved",
+    )
 
     args = parser.parse_args()
     return args
@@ -100,8 +106,8 @@ def main():
         pathlib.Path(__file__).resolve().parent
     )  # directory where this file is in
 
-    trainset_path = (base_dir  / args.train).resolve()
-    validationset_path = (base_dir  / args.validation).resolve()
+    trainset_path = (base_dir / args.train).resolve()
+    validationset_path = (base_dir / args.validation).resolve()
     testset_path = (base_dir / args.test).resolve()
     batch_size = args.batch_size
     epochs = args.epochs
@@ -134,10 +140,8 @@ def main():
         height=height,
     )
 
-    input_tensor = layers.Input(shape=(width, height, 3))
     net = model.CAPTCHANet(
         input_shape=(width, height, 3),
-        input_tensor=input_tensor,
         captcha_length=captcha_length,
         char_classes=len(available_chars),
     )
@@ -156,13 +160,15 @@ def main():
         valset,
         batch_size=batch_size,
         epochs=epochs,
+        save_path=args.output,
     )
 
+    # net.model.load_weights("save.hdf5")
+
     if not verbose:
-        net.evaluate(testset)
+        net.evaluate(testset, batch_size=batch_size)
     else:
         correct = 0
-        cnt = 0
 
         images, labels = [], []
         for idx, (image, label) in enumerate(testset):

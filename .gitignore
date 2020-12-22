@@ -218,3 +218,5 @@ $RECYCLE.BIN/
 *.pkl
 logs
 .vscode
+*.hdf5
+*.h5
