@@ -57,10 +57,17 @@ def parse_args():
         help="Remove previous datasets before generation (Default: %(default)s",
     )
     parser.add_argument(
-        "--split-validation",
+        "--no-split-validation",
         default=False,
         action="store_true",
-        help="Split train/validation set with different directories (Default: %(default)s)",
+        help="Do not split train/validation set with different directories (Default: %(default)s)",
+    )
+    parser.add_argument(
+        "-p",
+        "--preprocess",
+        default=False,
+        action="store_true",
+        help="Do preprocess before saving image (Default: %(default)s)",
     )
 
     return parser.parse_args()
@@ -143,14 +150,14 @@ def main():
     trainset_size = int(args.dataset_size * args.train_test_ratio)
     testset_size = args.dataset_size - trainset_size
 
-    if args.split_validation:
+    if not args.no_split_validation:
         validationset_dir = dataset_dir / VALIDATIONSET_DIR
         validationset_dir.is_dir() or validationset_dir.mkdir()
         # split validation set from trainset
         validationset_size = int(trainset_size * (1 - args.train_test_ratio))
         trainset_size -= validationset_size
 
-    preprocess_func = preprocess_img()
+    preprocess_func = preprocess_img() if args.preprocess else None
     verbose = True
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
@@ -162,7 +169,7 @@ def main():
             ),
         ]
 
-        if args.split_validation:
+        if not args.no_split_validation:
             futures.append(
                 executor.submit(
                     generate_data,
