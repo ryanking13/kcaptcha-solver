@@ -17,7 +17,7 @@ gpus = tf.config.experimental.list_physical_devices("GPU")
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 tf.config.experimental.set_virtual_device_configuration(
-    gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096)]
+    gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=8192)]
 )
 
 
@@ -31,11 +31,10 @@ def parse_args():
         help="Length of CAPTCHA (default: %(default)s)",
     )
     parser.add_argument(
-        "-w",
-        "--width",
+        "--image-size",
         type=int,
         default=96,
-        help="Width(=height) of input image (default: %(default)s)",
+        help="Width(=height) of input (default: %(default)s)",
     )
     parser.add_argument(
         "--char-set",
@@ -113,8 +112,8 @@ def main():
     epochs = args.epochs
     captcha_length = args.length
     available_chars = args.char_set
-    width = args.width
-    height = args.width
+    width = args.image_size
+    height = args.image_size
     verbose = args.verbose
 
     if verbose:
@@ -144,6 +143,7 @@ def main():
         input_shape=(width, height, 3),
         captcha_length=captcha_length,
         char_classes=len(available_chars),
+        save_path=args.output,
     )
 
     trainset, train_size = data_loader.get_trainset(batch_size=batch_size)
@@ -160,10 +160,10 @@ def main():
         valset,
         batch_size=batch_size,
         epochs=epochs,
-        save_path=args.output,
     )
 
-    # net.model.load_weights("save.hdf5")
+    if args.output is not None:
+        net.model.load_weights(args.output)
 
     if not verbose:
         net.evaluate(testset, batch_size=batch_size)

@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import mobilenet_v2
+from tensorflow.keras.applications import densenet
 
 import numpy as np
 import pandas as pd
@@ -32,12 +33,12 @@ class KCaptchaDataLoader:
         self.separator = "_"
         self.ext = "png"
         self.verbose = verbose
+        self.preproces_func = densenet.preprocess_input
 
         self.datagen = image.ImageDataGenerator(
             # rescale=1.0 / 255,
             # preprocess_input does scaling (https://github.com/tensorflow/tensorflow/blob/v2.3.1/tensorflow/python/keras/applications/imagenet_utils.py)
-            preprocessing_function=mobilenet_v2.preprocess_input,
-            # preprocessing_function=mobilenet.preprocess_input,
+            preprocessing_function=self.preproces_func,
         )
         self.dataset_loaded = False
 
@@ -120,7 +121,7 @@ class KCaptchaDataLoader:
     def get_validationset(self):
         if not self.dataset_loaded:  # Lazy data loading
             self.load_dataset()
-        return (self.x_val / 255.0, self.y_val), len(self.x_val)
+        return (self.preproces_func(self.x_val), self.y_val), len(self.x_val)
 
     def get_testset(self, batch_size=1):
         if not self.dataset_loaded:  # Lazy data loading

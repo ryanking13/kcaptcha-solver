@@ -1,7 +1,8 @@
 import datetime
 
 import tensorflow as tf
-from tensorflow.keras.applications import mobilenet_v2
+
+# from tensorflow.keras.applications import mobilenet_v2
 from tensorflow.keras.applications import DenseNet121
 
 # from tensorflow.keras.applications import mobilenet
@@ -20,18 +21,21 @@ class CAPTCHANet:
         input_shape=(224, 224, 3),
         captcha_length=1,
         char_classes=1000,
+        save_path=None,
     ):
         self.prediction_length = captcha_length * char_classes
+        self.input_tensor = layers.Input(shape=input_shape)
+        self.save_path = save_path
+
         # self.net = mobilenet_v2.MobileNetV2(
         #     input_shape=input_shape,
-        #     input_tensor=input_tensor,
+        #     input_tensor=self.input_tensor,
         #     alpha=1.0,
         #     include_top=False,
         #     weights="imagenet",
         #     # weights=None,
         #     pooling="max",
         # )
-        self.input_tensor = layers.Input(shape=input_shape)
 
         self.net = DenseNet121(
             input_shape=input_shape,
@@ -55,25 +59,29 @@ class CAPTCHANet:
         self.model.compile(
             optimizer=opt,
             loss="binary_crossentropy",
-            metrics=[self._captcha_accuracy(captcha_length, char_classes)],
+            metrics=[
+                self._captcha_accuracy(captcha_length, char_classes)
+                if self.save_path is not None
+                else "accuracy"  # if model needs to be saved, do not use custom metric for portability
+            ],
         )
 
         # self.model.summary()
 
-    def train(self, trainset, valset, batch_size, epochs, save_path=None):
-        
+    def train(self, trainset, valset, batch_size, epochs):
+
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(
             log_dir=log_dir, histogram_freq=1
         )
 
         callbacks = [tensorboard_callback]
-        
-        if save_path is not None:
+
+        if self.save_path is not None:
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-                save_path,
-                monitor="captcha_accuracy",
-                save_weights_only=True,
+                self.save_path,
+                monitor="val_loss",
+                save_best_only=True,
                 verbose=1,
             )
             callbacks.append(checkpoint_callback)
