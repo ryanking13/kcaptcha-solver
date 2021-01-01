@@ -220,3 +220,4 @@ logs
 .vscode
 *.hdf5
 *.h5
+model_tfjs

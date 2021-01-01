@@ -80,6 +80,12 @@ def parse_args():
         default=None,
         help="Save best model to specified path, if not specified, model is not saved",
     )
+    parser.add_argument(
+        "--eval-only",
+        default=False,
+        action="store_true",
+        help="Evaluate trained model, must be used with --output option",
+    )
 
     args = parser.parse_args()
     return args
@@ -155,15 +161,22 @@ def main():
         print(f"Validation Set Size: {val_size}")
         print(f"Test Set Size: {test_size}")
 
-    net.train(
-        trainset,
-        valset,
-        batch_size=batch_size,
-        epochs=epochs,
-    )
+    if not args.eval_only:
+        net.train(
+            trainset,
+            valset,
+            batch_size=batch_size,
+            epochs=epochs,
+        )
 
-    if args.output is not None:
-        net.model.load_weights(args.output)
+        if args.output is not None:
+            net.model.load_weights(args.output)
+    else:
+        if args.output is None:
+            print("model path is not defined, use --output option")
+            exit(1)
+
+        net.model.load_weights(args.output)       
 
     if not verbose:
         net.evaluate(testset, batch_size=batch_size)
