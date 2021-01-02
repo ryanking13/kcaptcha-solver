@@ -31,10 +31,16 @@ def parse_args():
         help="Length of CAPTCHA (default: %(default)s)",
     )
     parser.add_argument(
-        "--image-size",
+        "--width",
         type=int,
-        default=96,
-        help="Width(=height) of input (default: %(default)s)",
+        default=160,
+        help="Width of input (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        default=60,
+        help="Height of input (default: %(default)s)",
     )
     parser.add_argument(
         "--char-set",
@@ -118,8 +124,8 @@ def main():
     epochs = args.epochs
     captcha_length = args.length
     available_chars = args.char_set
-    width = args.image_size
-    height = args.image_size
+    width = args.width
+    height = args.height
     verbose = args.verbose
 
     if verbose:
@@ -146,7 +152,7 @@ def main():
     )
 
     net = model.CAPTCHANet(
-        input_shape=(width, height, 3),
+        input_shape=(height, width, 3),
         captcha_length=captcha_length,
         char_classes=len(available_chars),
         save_path=args.output,
@@ -193,6 +199,7 @@ def main():
 
         predictions = net.predict(np.squeeze(np.array(images)))
         for prediction, label in tqdm(zip(predictions, labels)):
+            # print(prediction)
             p = decode_prediction(prediction, args.char_set)
             l = data_loader.one_hot_decode(label[0])
             # print(p, l)
