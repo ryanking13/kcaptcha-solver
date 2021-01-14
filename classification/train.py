@@ -49,17 +49,17 @@ def parse_args():
     )
     parser.add_argument(
         "--train",
-        default="datasets/.data/train",
+        default=".data/train",
         help="Train dataset directory (default: %(default)s)",
     )
     parser.add_argument(
         "--validation",
-        default="datasets/.data/validation",
+        default=".data/validation",
         help="Validation dataset directory (default: %(default)s)",
     )
     parser.add_argument(
         "--test",
-        default="datasets/.data/test",
+        default=".data/test",
         help="Test dataset directory (default: %(default)s)",
     )
     parser.add_argument(

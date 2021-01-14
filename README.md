@@ -1,10 +1,16 @@
-# kcaptcha-solver
+# KCAPTCHA Solver
 
+[KCAPTCHA](http://www.captcha.ru/en/kcaptcha/) solver
 
-```sh
-python train.py
-```
+## Classification based solver
 
-```sh
-tensorflowjs_converter --input_format keras --output_format=tfjs_graph_model model.h5 model_tfjs/
-```
+See [classification](./classification) directory.
+
+## Object Detection based solver
+
+See [object detection](./object_detection) directory.
+
+## See also
+
+- [kcaptcha-generator](https://github.com/ryanking13/kcpatcha-generator): KCATPCHA dataset generator
+- [kcaptcha](https://github.com/ryanking13/kcaptcha): static site which serves converted Tensorflow.js model
