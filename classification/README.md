@@ -23,8 +23,28 @@ unzip .data.zip -o .data
 python train.py -v
 ```
 
-```sh
+```
+usage: train.py [-h] [-l LENGTH] [--width WIDTH] [--height HEIGHT] [--char-set CHAR_SET] [--train TRAIN] [--validation VALIDATION] [--test TEST]
+                [--epochs EPOCHS] [--batch-size BATCH_SIZE] [-v] [-o OUTPUT] [--eval-only]
 
+optional arguments:
+  -h, --help            show this help message and exit
+  -l LENGTH, --length LENGTH
+                        Length of CAPTCHA (default: 2)
+  --width WIDTH         Width of input (default: 160)
+  --height HEIGHT       Height of input (default: 60)
+  --char-set CHAR_SET   Available characters for CAPTCHA (default: 0123456789)
+  --train TRAIN         Train dataset directory (default: .data/train)
+  --validation VALIDATION
+                        Validation dataset directory (default: .data/validation)
+  --test TEST           Test dataset directory (default: .data/test)
+  --epochs EPOCHS       Traning epochs (default: 5)
+  --batch-size BATCH_SIZE
+                        Batch size (default: 64)
+  -v, --verbose
+  -o OUTPUT, --output OUTPUT
+                        Save best model to specified path, if not specified, model is not saved
+  --eval-only           Evaluate trained model, must be used with --output option
 ```
 
 ## Evaluation
