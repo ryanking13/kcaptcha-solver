@@ -20,13 +20,21 @@ unzip .data.zip -o .data
 ## Training
 
 ```sh
-python train.py
+python train.py -v
+```
+
+```sh
+
 ```
 
 ## Evaluation
 
-```
-python train.py --eval-only
+
+```sh
+# You can download pretrained model here 
+wget https://github.com/ryanking13/kcaptcha-solver/releases/download/v0.1/l2.model.h5
+
+python train.py --eval-only -o l2.model.h5
 ```
 
 ```sh
