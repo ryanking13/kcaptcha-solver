@@ -61,7 +61,7 @@ class CAPTCHANet:
             loss="binary_crossentropy",
             metrics=[
                 self._captcha_accuracy(captcha_length, char_classes)
-                if self.save_path is not None
+                if self.save_path is None
                 else "accuracy"  # if model needs to be saved, do not use custom metric for portability
             ],
         )
@@ -101,7 +101,6 @@ class CAPTCHANet:
                 _y_pred = tf.slice(y_pred, [0, i * classes], [-1, classes])
                 sum_acc += metrics.categorical_accuracy(_y_true, _y_pred)
             return sum_acc / captcha_length
-            # return 1
 
         return captcha_accuracy
 
