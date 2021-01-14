@@ -57,6 +57,8 @@ wget https://github.com/ryanking13/kcaptcha-solver/releases/download/v0.1/l2.mod
 python train.py --eval-only -o l2.model.h5
 ```
 
+## Converting model weights to tf.js
+
 ```sh
-tensorflowjs_converter --input_format keras --output_format=tfjs_graph_model model.h5 model_tfjs/
+tensorflowjs_converter --input_format keras --output_format=tfjs_graph_model l2.model.h5 model_tfjs/
 ```
