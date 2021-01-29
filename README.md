@@ -2,13 +2,13 @@
 
 [KCAPTCHA](http://www.captcha.ru/en/kcaptcha/) solver
 
-## Classification based solver
+## Classification based
 
 See [classification](./classification) directory.
 
-## Object Detection based solver
+## Object Detection based
 
-See [object detection](./object_detection) directory.
+`TODO`
 
 ## See also
 
