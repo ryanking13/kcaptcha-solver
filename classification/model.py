@@ -2,8 +2,9 @@ import datetime
 
 import tensorflow as tf
 
-# from tensorflow.keras.applications import mobilenet_v2
+from tensorflow.keras.applications import mobilenet_v2
 from tensorflow.keras.applications import DenseNet121
+from tensorflow.keras.applications import EfficientNetB0
 
 # from tensorflow.keras.applications import mobilenet
 from tensorflow import keras
@@ -22,28 +23,40 @@ class CAPTCHANet:
         captcha_length=1,
         char_classes=1000,
         save_path=None,
+        base_model=None,
     ):
         self.prediction_length = captcha_length * char_classes
         self.input_tensor = layers.Input(shape=input_shape)
         self.save_path = save_path
 
-        # self.net = mobilenet_v2.MobileNetV2(
-        #     input_shape=input_shape,
-        #     input_tensor=self.input_tensor,
-        #     alpha=1.0,
-        #     include_top=False,
-        #     weights="imagenet",
-        #     # weights=None,
-        #     pooling="max",
-        # )
-
-        self.net = DenseNet121(
-            input_shape=input_shape,
-            input_tensor=self.input_tensor,
-            include_top=False,
-            weights="imagenet",
-            pooling="max",
-        )
+        if base_model == "mobilenetv2":
+            self.net = mobilenet_v2.MobileNetV2(
+                input_shape=input_shape,
+                input_tensor=self.input_tensor,
+                alpha=1.0,
+                include_top=False,
+                weights="imagenet",
+                # weights=None,
+                pooling="max",
+            )
+        elif base_model == "densenet121":
+            self.net = DenseNet121(
+                input_shape=input_shape,
+                input_tensor=self.input_tensor,
+                include_top=False,
+                weights="imagenet",
+                pooling="max",
+            )
+        elif base_model == "efficientnetb0":
+            self.net = EfficientNetB0(
+                input_shape=input_shape,
+                input_tensor=self.input_tensor,
+                include_top=False,
+                weights="imagenet",
+                pooling="max",
+            )
+        else:
+            raise ValueError(f"Model {base_model} not supported.")
 
         # for layer in self.net.layers:
         #     layer.trainable = False

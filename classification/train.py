@@ -20,6 +20,12 @@ tf.config.experimental.set_virtual_device_configuration(
     gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=8192)]
 )
 
+AVAILABLE_MODELS = (
+    "mobilenetv2",
+    "densenet121",
+    "efficientnetb0",
+)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -65,7 +71,7 @@ def parse_args():
     parser.add_argument(
         "--epochs",
         type=int,
-        default=5,
+        default=15,
         help="Traning epochs (default: %(default)s)",
     )
     parser.add_argument(
@@ -92,6 +98,11 @@ def parse_args():
         action="store_true",
         help="Evaluate trained model, must be used with --output option",
     )
+    parser.add_argument(
+        "--model",
+        default="densenet121",
+        help="Baseline model to use (default: %(default)s)"
+    )
 
     args = parser.parse_args()
     return args
@@ -113,6 +124,9 @@ def vec2img(vec):
 def main():
     args = parse_args()
 
+    if args.model not in AVAILABLE_MODELS:
+        raise ValueError(f"Model {args.model} not supported. Supported models: {', '.join(AVAILABLE_MODELS)}")
+
     base_dir = (
         pathlib.Path(__file__).resolve().parent
     )  # directory where this file is in
@@ -127,6 +141,7 @@ def main():
     width = args.width
     height = args.height
     verbose = args.verbose
+    base_model = args.model
 
     if verbose:
         # os.environ["TF_CPP_MIN_LOG_LEVEL"] = "0"
@@ -139,6 +154,7 @@ def main():
         print(f"Length of CAPTCHA: {captcha_length}")
         print(f"Available Characters: {available_chars}")
         print(f"Image size: {width}x{height}")
+        print(f"Base model: {base_model}")
         print("-----------------------------------------")
 
     data_loader = dataset.KCaptchaDataLoader(
@@ -149,6 +165,7 @@ def main():
         available_chars=available_chars,
         width=width,
         height=height,
+        base_model=base_model,
     )
 
     net = model.CAPTCHANet(
@@ -156,6 +173,7 @@ def main():
         captcha_length=captcha_length,
         char_classes=len(available_chars),
         save_path=args.output,
+        base_model=base_model,
     )
 
     trainset, train_size = data_loader.get_trainset(batch_size=batch_size)

@@ -4,6 +4,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import mobilenet_v2
 from tensorflow.keras.applications import densenet
+from tensorflow.keras.applications import efficientnet
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,13 @@ from PIL import Image
 
 
 class KCaptchaDataLoader:
+
+    preprocess_func = {
+        "mobilenetv2": mobilenet_v2.preprocess_input,
+        "densenet121": densenet.preprocess_input,
+        "efficientnetb0": efficientnet.preprocess_input
+    }
+
     def __init__(
         self,
         trainset_path,
@@ -20,6 +28,7 @@ class KCaptchaDataLoader:
         available_chars,
         width,
         height,
+        base_model,
         verbose=True,
     ):
         self.trainset_path = trainset_path
@@ -33,7 +42,7 @@ class KCaptchaDataLoader:
         self.separator = "_"
         self.ext = "png"
         self.verbose = verbose
-        self.preproces_func = densenet.preprocess_input
+        self.preproces_func = KCaptchaDataLoader.preprocess_func[base_model]
 
         self.datagen = image.ImageDataGenerator(
             # rescale=1.0 / 255,
