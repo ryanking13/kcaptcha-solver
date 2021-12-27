@@ -13,6 +13,7 @@ from tqdm import tqdm
 import model
 import dataset
 
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 gpus = tf.config.experimental.list_physical_devices("GPU")
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
@@ -108,13 +109,13 @@ def parse_args():
     return args
 
 
-def decode_prediction(predicted, char_set):
+def decode_prediction(predicted, char_set, length=2):
     l = len(char_set)
-    c0 = char_set[np.argmax(predicted[0:l])]
-    c1 = char_set[np.argmax(predicted[l : 2 * l])]
+    chars = []
+    for i in range(length):
+        chars.append(char_set[np.argmax(predicted[i * l : (i + 1) * l])])
 
-    predicted_num = "%s%s" % (c0, c1)
-    return predicted_num
+    return "".join(chars)
 
 
 def vec2img(vec):
@@ -218,7 +219,7 @@ def main():
         predictions = net.predict(np.squeeze(np.array(images)))
         for prediction, label in tqdm(zip(predictions, labels)):
             # print(prediction)
-            p = decode_prediction(prediction, args.char_set)
+            p = decode_prediction(prediction, args.char_set, captcha_length)
             l = data_loader.one_hot_decode(label[0])
             # print(p, l)
             if p == l:
